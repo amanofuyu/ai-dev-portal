@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+
+# Nuxt
+.nuxt
+.output
+.data
+
+# Build outputs
+dist
+apps/api/bin
+
+# Turborepo
+.turbo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# SQLite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Lock files (Go)
+apps/api/go.sum

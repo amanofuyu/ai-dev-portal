@@ -1,0 +1,63 @@
+---
+description: 项目技术栈、Monorepo 与目录结构约定
+alwaysApply: true
+---
+
+# Domain Watcher 项目约定
+
+## 技术栈
+
+- **包管理**: pnpm，禁止使用 npm/yarn 安装依赖或执行脚本
+- **Monorepo**: Turborepo 管理，任务定义在各 package 的 package.json，根目录仅通过 `turbo run <task>` 委托
+- **后端**: Go + SQLite，位于 `apps/api`
+- **前端**: Nuxt 4 + TypeScript + VueUse + Tailwind CSS + DaisyUI，位于 `apps/web`
+
+## 目录结构
+
+```
+domain-watcher/
+├── apps/
+│   ├── web/                 # Nuxt 4 前端
+│   │   ├── app/             # 应用源码（Nuxt 4 推荐）
+│   │   │   ├── app.vue
+│   │   │   ├── app.config.ts
+│   │   │   ├── layouts/
+│   │   │   ├── pages/
+│   │   │   ├── components/
+│   │   │   ├── composables/
+│   │   │   └── assets/
+│   │   ├── nuxt.config.ts
+│   │   ├── package.json
+│   │   └── ...
+│   └── api/                 # Go 后端
+│       ├── cmd/             # 入口 main
+│       ├── internal/        # 私有包（handler、service、repo）
+│       ├── migrations/      # SQL 迁移（可选）
+│       ├── go.mod
+│       ├── go.sum
+│       └── package.json    # 仅用于 Turborepo 任务，如 build/lint
+├── packages/                # 共享包（可选）
+│   └── shared-types/        # 前后端共享类型（若需）
+├── .cursor/
+├── pnpm-workspace.yaml
+├── package.json             # 根 package，workspaces + turbo 委托脚本
+└── turbo.json
+```
+
+## 通用约定
+
+- 新增任务时：在对应 app/package 的 `package.json` 中加 script，在根目录 `turbo.json` 的 `tasks` 中注册；根 `package.json` 只保留 `turbo run xxx` 形式的委托
+- 前后端协作：API 契约（路径、请求/响应形状）以 `apps/api` 为权威；前端通过 `$fetch`/`useFetch` 调用，类型定义在 `apps/web/app/types/`
+
+## AI 工作流
+
+- 开始实现前：先读 [TASKS.md](./TASKS.md) 找到下一个**未完成**的任务项
+- 完成后：将对应 checkbox 标记为 `[x]`，并按验收条件自行检查
+- 遇到设计问题：查阅 [design.md](./design.md) 获取 ER 图、API 定义、TypeScript 类型
+- 代码修改后：运行 `pnpm lint` 确保通过
+
+## 置信度握手
+
+- **直接执行**：局部代码修改、bug 修复、已有明确约定的实现（如 TASKS.md 中有验收条件的任务）
+- **先说明再执行**：新增依赖、修改公共配置（nuxt.config.ts、turbo.json 等）、调整目录结构
+- **必须暂停确认**：架构决策（如引入新框架、改变数据模型）、破坏性变更（删文件、改 API 契约）、与现有约定冲突的方案

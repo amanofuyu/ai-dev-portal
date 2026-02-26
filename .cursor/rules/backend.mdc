@@ -1,0 +1,45 @@
+---
+description: 后端约定（Go + SQLite）
+globs: apps/api/**,**/*.go
+alwaysApply: false
+---
+
+# 后端 (apps/api)
+
+## 原则：最简实现
+
+- 少依赖、少分层：能标准库就标准库，能一个 handler 搞定就不强行拆 service/repo
+- 结构清晰即可，不追求“完整架构”；后续需要再抽层、加中间件
+
+## 技术栈
+
+- **语言**: Go，优先标准库（net/http、database/sql 等），必要时再加 router/SQLite 驱动
+- **数据库**: SQLite，库文件路径通过环境变量或默认值配置
+
+## 目录约定
+
+- `cmd/`: 程序入口（main）
+- `internal/`: 业务与数据访问（可按需简化为单层，如 handler + 直接 db 调用）
+- `migrations/`: 若有迁移再建；简单场景可先手建表
+- 对外 API：REST，路径与请求/响应体与前端约定一致
+
+## 约定
+
+- 数据库：集中打开/关闭与查询，避免到处裸写 sql
+- 配置：端口、SQLite 路径等从环境变量或少量配置读取，不写死
+
+## 错误处理
+
+- JSON 响应统一使用 `{"error": "message"}` 格式
+- HTTP 状态码：400（参数错误）、404（资源不存在）、500（服务器错误）
+- handler 内用 helper 函数统一写错误响应，避免重复代码：
+  ```go
+  func writeJSON(w http.ResponseWriter, status int, v any) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(status)
+      json.NewEncoder(w).Encode(v)
+  }
+  func writeError(w http.ResponseWriter, status int, msg string) {
+      writeJSON(w, status, map[string]string{"error": msg})
+  }
+  ```

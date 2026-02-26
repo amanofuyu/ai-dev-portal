@@ -1,0 +1,49 @@
+---
+description: 前端约定（Nuxt / TypeScript / VueUse / Tailwind / DaisyUI）
+globs: apps/web/**
+alwaysApply: false
+---
+
+# 前端 (apps/web)
+
+## 技术栈
+
+- **框架**: Nuxt 4，Composition API + `<script setup>` + TypeScript
+- **工具库**: VueUse，在合适处使用 composables 替代手写逻辑
+- **样式**: Tailwind CSS + DaisyUI，优先用 utility 与 DaisyUI 组件/主题，避免手写 CSS
+
+## 依赖约束（必须遵守）
+
+- **新增依赖**：优先使用最新稳定版，`pnpm add <pkg>@latest` 或 `pnpm add -D <pkg>@latest`
+- **更新依赖**：修改后运行 `pnpm exec taze -w` 检查可更新项，或使用 `pnpm run tup`
+- **禁止**：不要使用已弃用或过旧的包；引入新包前确认其维护状态与兼容性
+
+## ESLint 约束（必须遵守）
+
+- **规范来源**：遵循 `apps/web/eslint.config.mjs` 中的 @antfu/eslint-config 配置
+- **修改后**：每次编辑前端代码后运行 `pnpm --filter web exec eslint . --fix` 自动修复，再运行 `pnpm --filter web lint` 验证
+- **提交前**：代码必须通过 `pnpm lint`，若有报错需修复后再提交
+
+## 约定
+
+- 目录结构：遵循 Nuxt 4 推荐，应用源码置于 `app/`（app.vue、layouts、pages、components、composables、types、assets）
+- 组件、composables、类型：优先使用 Nuxt 自动导入
+- 请求后端：用 `$fetch` 或 `useFetch`/`useAsyncData`，BaseURL 通过 `runtimeConfig` 配置
+- 新页面/布局：`app/pages/` 文件路由，`app/layouts/` 布局
+- TypeScript 类型：定义在 `app/types/` 下，Nuxt 自动导入
+
+## 错误处理
+
+- `useFetch`/`useAsyncData` 始终解构 `{ data, error, status }`，对 error 做 null 检查
+- 网络/API 错误在 UI 上给予用户反馈（toast 或 inline 提示），不静默吞掉
+- `$fetch` 调用包裹在 try/catch 中，catch 块处理错误展示
+
+## 共享状态（Context）
+
+- 不引入 Pinia；用 provide/inject 时**不直接调用 provide/inject**，按下面模式封装成 composable：
+  1. `import type { InjectionKey } from 'vue'`
+  2. 定义 context 的 TypeScript 接口（如 `XxxContext`）
+  3. 用 `Symbol('xxx') as InjectionKey<XxxContext>` 定义 key，不导出 key 本身
+  4. 导出 `provideXxxContext(context: XxxContext)`：内部 `provide(key, context)`
+  5. 导出 `useXxxContext()`：内部 `inject(key)`，未找到时返回 `null` 或按需 `console.warn`，调用方自行判断
+  - 使用方：父组件调用 `provideXxxContext(context)`，子组件调用 `useXxxContext()` 获取。复杂表单/列表可配合 VueUse。

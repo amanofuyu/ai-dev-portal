@@ -1,0 +1,28 @@
+{
+  "name": "web",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "lint": "eslint .",
+    "tup": "taze latest -w --exclude taze"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.2.1",
+    "daisyui": "^5.5.19",
+    "nuxt": "^4.3.1",
+    "vue": "^3.5.29"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.5.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^10.0.2",
+    "eslint-plugin-format": "^2.0.0",
+    "tailwindcss": "^4.0.0",
+    "taze": "^18.7.1",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.5"
+  }
+}
